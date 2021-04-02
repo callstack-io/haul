@@ -11,40 +11,12 @@ import dedent from 'dedent';
 import which from 'which';
 import exec from 'execa';
 import npmFetch from 'npm-registry-fetch';
+import { Command } from '@react-native-community/cli';
+
+import setupLogging from './shared/setupLogging';
 
 const delay = (time: number) =>
   new Promise(resolve => setTimeout(resolve, time));
-
-async function checkProject(progress: Ora, cwd: string, runtime: Runtime) {
-  progress.start('Checking project files');
-  await delay(1000);
-
-  // Are we inside a React Native project?
-  if (getReactNativeVersion(cwd)) {
-    progress.succeed('Project looks good');
-  } else {
-    progress.fail(dedent`
-    This doesn't seem to be a React Native project.
-
-    Make sure you have a ${runtime.logger.enhanceWithModifier(
-      'bold',
-      'package.json'
-    )} file with ${runtime.logger.enhanceWithModifier(
-      'bold',
-      'react-native'
-    )} in dependencies, and you have installed these dependencies.
-
-    To generate a React Native project, run ${runtime.logger.enhanceWithModifier(
-      'bold',
-      'react-native init <ProjectName>'
-    )}. See ${runtime.logger.enhanceWithColor(
-      'cyan',
-      'https://facebook.github.io/react-native/docs/getting-started.html'
-    )} for details.
-  `);
-    runtime.complete(1);
-  }
-}
 
 async function createHaulProjectConfig(
   progress: Ora,
@@ -202,7 +174,7 @@ async function modifyXcodeProject(progress: Ora, cwd: string) {
     return;
   }
 
-  const haulTask = `shellScript = "# ${haulSignature}\\nexport CLI_PATH=node_modules/@haul-bundler/cli/bin/haul.js\\nexport NODE_BINARY=node`;
+  const haulTask = `shellScript = "# ${haulSignature}\\nexport BUNDLE_COMMAND=haul-bundle\\nexport NODE_BINARY=node`;
 
   project = project.replace(new RegExp(originalTask, 'g'), haulTask);
 
@@ -238,10 +210,9 @@ async function modifyGradleBuild(progress: Ora, cwd: string) {
   progress.start('Adding haul to your build.gradle');
   await delay(1000);
   let project = fs.readFileSync(gradleBuildFile).toString();
-  const cliString = '"node_modules/@haul-bundler/cli/bin/haul.js"';
 
   // Are we already integrated?
-  if (project.includes(cliString)) {
+  if (project.includes('bundleCommand: "haul-bundle"')) {
     progress.info('Haul is already part of your build.gradle');
     return;
   }
@@ -251,7 +222,7 @@ async function modifyGradleBuild(progress: Ora, cwd: string) {
     dedent`
     project.ext.react = [
     $1,
-        cliPath: ${cliString}
+        bundleCommand: "haul-bundle"
     ]
     `
   );
@@ -276,10 +247,7 @@ async function addHaulScript(progress: Ora, cwd: string): Promise<string> {
   }
 
   let scriptName = 'start';
-  if (
-    scripts.start &&
-    scripts.start !== 'node node_modules/react-native/local-cli/cli.js start'
-  ) {
+  if (scripts.start && scripts.start !== 'react-native start') {
     const result = (await inquirer.prompt([
       {
         type: 'input',
@@ -294,7 +262,7 @@ async function addHaulScript(progress: Ora, cwd: string): Promise<string> {
   }
 
   packageJson.scripts = Object.assign({}, scripts, {
-    [scriptName]: 'haul start',
+    [scriptName]: 'react-native haul-start',
   });
 
   progress.start(`Adding \`${scriptName}\` script to your package.json`);
@@ -355,49 +323,53 @@ async function installDependencies(
   await exec(useYarn ? 'yarn' : 'npm', installArgs, { stdio: 'inherit' });
 }
 
-export default function initCommand(runtime: Runtime) {
-  return {
-    command: 'init',
-    describe: 'Generates necessary configuration files',
-    async handler() {
-      let exitCode = 0;
-      try {
-        const cwd = process.cwd();
-        const rnVersion = getReactNativeVersion(cwd);
+async function init() {
+  const runtime = new Runtime();
+  setupLogging({}, runtime);
+  let exitCode = 0;
+  try {
+    const cwd = process.cwd();
+    const rnVersion = getReactNativeVersion(cwd);
 
-        if (!rnVersion) {
-          runtime.logger.error(
-            'Cannot find React Native. Are you in React Native project?'
-          );
-          runtime.complete(1);
-        }
+    if (!rnVersion) {
+      runtime.logger.error(
+        'Cannot find React Native. Are you in React Native project?'
+      );
+      runtime.complete(1);
+    }
 
-        const progress = ora().start('Detecting Haul preset version...');
+    const progress = ora().start('Detecting Haul preset version...');
 
-        const babelPreset = '@haul-bundler/babel-preset-react-native';
-        const haulPreset = await getAvailableHaulPreset(
-          progress,
-          `@haul-bundler/preset-${rnVersion!.major}.${rnVersion!.minor}`
-        );
+    const babelPreset = '@haul-bundler/babel-preset-react-native';
+    const haulPreset = await getAvailableHaulPreset(
+      progress,
+      `@haul-bundler/preset-${rnVersion!.major}.${rnVersion!.minor}`
+    );
 
-        progress.info(`Using Haul preset: ${haulPreset}`);
+    progress.info(`Using Haul preset: ${haulPreset}`);
 
-        await checkProject(progress, cwd, runtime);
-        await createHaulProjectConfig(progress, cwd, runtime, haulPreset);
-        await modifyBabelConfig(progress, cwd, runtime, babelPreset);
-        await modifyXcodeProject(progress, cwd);
-        await modifyGradleBuild(progress, cwd);
-        const scriptName = await addHaulScript(progress, cwd);
-        await installDependencies(progress, { babelPreset, haulPreset });
-        progress.succeed(
-          `You can now start Haul by running '${getRunScript(scriptName)}'`
-        );
-      } catch (error) {
-        runtime.logger.error('Command failed with error:', error);
-        exitCode = 1;
-      } finally {
-        runtime.complete(exitCode);
-      }
-    },
-  };
+    await createHaulProjectConfig(progress, cwd, runtime, haulPreset);
+    await modifyBabelConfig(progress, cwd, runtime, babelPreset);
+    await modifyXcodeProject(progress, cwd);
+    await modifyGradleBuild(progress, cwd);
+    const scriptName = await addHaulScript(progress, cwd);
+    await installDependencies(progress, { babelPreset, haulPreset });
+    progress.succeed(
+      `You can now start Haul by running '${getRunScript(scriptName)}'`
+    );
+  } catch (error) {
+    runtime.logger.error('Command failed with error:', error);
+    runtime.unhandledError(error);
+    exitCode = 1;
+  } finally {
+    runtime.complete(exitCode);
+  }
 }
+
+const command: Command = {
+  name: 'haul-init',
+  description: 'Generates necessary configuration files',
+  func: init,
+};
+
+export default command;

@@ -1,42 +1,13 @@
 {
   "version": "0.22.1",
   "name": "@haul-bundler/cli",
-  "description": "Haul is a new command line tools for React Native",
-  "bin": {
-    "haul": "./bin/haul.js"
-  },
-  "main": "build/api.js",
-  "files": [
-    "build/",
-    "bin/"
-  ],
-  "engines": {
-    "node": ">=10.x"
-  },
+  "description": "Haul is a new command line tools for React Native", 
   "author": "Pawel Trysla <pawel.trysla@callstack.com>",
   "repository": "github:callstack/haul",
   "license": "MIT",
   "bugs": "https://github.com/callstack/haul/issues",
   "peerDependencies": {
-    "react-native": ">=0.59.0",
-    "webpack": "4.x"
-  },
-  "dependencies": {
-    "@haul-bundler/core": "^0.22.1",
-    "@haul-bundler/core-legacy": "^0.18.0",
-    "ansi-fragments": "^0.2.1",
-    "cpx": "^1.5.0",
-    "dedent": "^0.7.0",
-    "execa": "^4.0.0",
-    "inquirer": "^7.0.3",
-    "mkdirp": "^0.5.1",
-    "npm-registry-fetch": "^6.0.0",
-    "ora": "^4.0.3",
-    "simple-progress-webpack-plugin": "^1.1.2",
-    "which": "2.0.2",
-    "ws": "^7.2.1",
-    "yargs": "^15.1.0",
-    "yargs-parser": "^16.1.0"
+    "@haul-bundler/core": "^0.22.1"
   },
   "gitHead": "c41becc82dfeafb07b642ebed8f082775647ec3f"
 }

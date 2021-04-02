@@ -7,9 +7,6 @@
   "references": [
     {
       "path": "../haul-core"
-    },
-    {
-      "path": "../haul-cli"
     }
   ]
 }

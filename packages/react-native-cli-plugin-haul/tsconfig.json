@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "es5",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "strict": true,
+    "noImplicitAny": true,
+    "outDir": "build",
+    "declaration": true,
+    "sourceMap": true,
+  },
+  "exclude": ["node_modules", "test", "build"],
+}

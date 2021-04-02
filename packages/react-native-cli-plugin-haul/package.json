@@ -1,0 +1,45 @@
+{
+  "name": "@haul-bundler/react-native-cli-plugin",
+  "version": "1.0.0",
+  "description": "Haul plugin for react-native-community/cli",
+  "main": "build/index.js",
+  "files": [
+    "build/",
+    "react-native.config.js"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/callstack/haul.git"
+  },
+  "keywords": [
+    "haul",
+    "react",
+    "native",
+    "cli",
+    "plugin",
+    "command"
+  ],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/callstack/haul/issues"
+  },
+  "homepage": "https://github.com/callstack/haul#readme",
+  "peerDependencies": {
+    "@react-native-community/cli": ">= 3.0.0",
+    "react-native": ">=0.59.0",
+    "webpack": "4.x"
+  },
+  "dependencies": {
+    "@haul-bundler/core": "*",
+    "cpx": "^1.5.0",
+    "dedent": "^0.7.0",
+    "execa": "^4.0.0",
+    "inquirer": "^7.0.3",
+    "mkdirp": "^0.5.1",
+    "npm-registry-fetch": "^6.0.0",
+    "ora": "^4.0.3",
+    "simple-progress-webpack-plugin": "^1.1.2",
+    "which": "2.0.2"
+  }
+}
