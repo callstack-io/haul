@@ -19,6 +19,12 @@ const users = [
     infoLink: 'http://engineering.rallyhealth.com/',
     pinned: false,
   },
+  {
+    caption: 'Atakama, LLC',
+    image: 'https://www.atakama.com/#',
+    infoLink: 'http://atakama.com/faq',
+    pinned: false,
+  },
 ];
 
 const siteConfig = {
