@@ -22,6 +22,10 @@ const users = [
 ];
 
 const siteConfig = {
+  algolia: {
+    apiKey: '7b03192912c46228355578528d0339f9',
+    indexName: 'haul',
+  },
   title: 'Haul',
   tagline: 'A command line tool for developing React Native apps',
   url: 'https://facebook.github.io' /* your website url */,
