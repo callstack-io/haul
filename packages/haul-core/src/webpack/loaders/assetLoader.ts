@@ -15,6 +15,9 @@ type Config = {
   publicPath?: string | ((path: string) => string);
 };
 
+const MAX_FILENAME_LENGTH = 120;
+let longNameAssetCount = 1;
+
 async function assetLoader(this: any) {
   this.cacheable();
 
@@ -47,10 +50,16 @@ async function assetLoader(this: any) {
   const assets = path.join('assets', config.bundle ? '' : config.platform);
   const suffix = `(@\\d+(\\.\\d+)?x)?(\\.(${config.platform}|native))?\\.${type}$`;
   const filename = path.basename(filePath).replace(new RegExp(suffix), '');
-  const normalizedName =
+  let normalizedName =
     url.length === 0
       ? filename
       : `${url.replace(pathSepPattern, '_')}_${filename}`;
+  if (normalizedName.length > MAX_FILENAME_LENGTH) {
+    normalizedName =
+      normalizedName.substring(normalizedName.length - MAX_FILENAME_LENGTH) +
+      '_' +
+      (longNameAssetCount++).toString();
+  }
   const longName = `${normalizedName
     .toLowerCase()
     .replace(/[^a-z0-9_]/g, '')}.${type}`;
